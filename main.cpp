@@ -10,6 +10,8 @@ using namespace std;
 
 void Reshape(int width, int height)
 {
+    glViewport(0, 0, width, height);
+    glLoadIdentity();
     gluOrtho2D(X1, X2, Y1, Y2);
 }
 
@@ -32,12 +34,11 @@ void Draw()
 
     glLineWidth(5);
 
-    glBegin(GL_LINE_STRIP);
+    glBegin(GL_LINE_LOOP);
         glVertex2f(-100, -100);
         glVertex2f(100, -100);
         glVertex2f(100, 100);
         glVertex2f(-100, 100);
-        glVertex2f(-100, -100);
     glEnd();
 
     glFlush();

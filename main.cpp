@@ -1,5 +1,6 @@
 #include <iostream>
 #include <GL/freeglut.h>
+#include <cmath>
 
 #define X1   -200
 #define X2   200
@@ -7,6 +8,7 @@
 #define Y2   200
 
 #define ZOOM_STEP  3
+#define LOD_STEP   1
 
 #define SET_GLOBAL_STATE_SIZE(__w, __h) \
     gState.iWidth = __w; \
@@ -18,9 +20,12 @@ typedef struct {
     int iZoom = 0;
     int iWidth;
     int iHeight;
+    int iLod = 10;
 } globalState;
 
 globalState gState;
+
+void *font = GLUT_BITMAP_9_BY_15;
 
 GLvoid hSetupOrtho2D()
 {
@@ -58,9 +63,24 @@ GLvoid handleDraw(GLvoid)
 {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    glLineWidth(2);
+    glColor3f(0.0f, 0.0f, 0.5f);
+
+    glBegin(GL_POLYGON);
+        GLfloat radius      = 50;
+        GLfloat fragment    = M_PI * 2 / gState.iLod;
+
+        for (int i = 0; i < gState.iLod; i++) {
+            glVertex2f(radius * cos(i * fragment), radius * sin(i * fragment));
+        }
+    glEnd();
+
     glColor3f(0.0f, 0.5f, 0.0f);
 
     glLineWidth(1);
+
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_POLYGON_SMOOTH);
 
     glBegin(GL_LINES);
         glVertex2f(X1, 0);
@@ -79,6 +99,11 @@ GLvoid handleDraw(GLvoid)
         glVertex2f(100, 100);
         glVertex2f(-100, 100);
     glEnd();
+
+    glRasterPos2f(X2 - 15, 5);
+    glutBitmapCharacter(font, 'x');
+    glRasterPos2f(5, Y2 - 15);
+    glutBitmapCharacter(font, 'y');
 
     glFlush();
     glutSwapBuffers();
@@ -101,6 +126,19 @@ GLvoid handleMouse(int button, int state, int x, int y)
     hSetupOrtho2D();
 }
 
+GLvoid handleKeyboardKey(int key, int x, int y)
+{
+    switch (key) {
+    case 101:
+        gState.iLod += LOD_STEP;
+        break;
+
+    case 103:
+        gState.iLod -= LOD_STEP;
+        break;
+    }
+}
+
 GLvoid handleIdle(GLvoid) {
     glutPostRedisplay();
 }
@@ -118,6 +156,7 @@ int main(int argc, char *argv[])
     glutReshapeFunc(handleReshape);
     glutDisplayFunc(handleDraw);
     glutMouseFunc(handleMouse);
+    glutSpecialFunc(handleKeyboardKey);
     glutIdleFunc(handleIdle);
 
     glClearColor(1, 1, 1, 1);
